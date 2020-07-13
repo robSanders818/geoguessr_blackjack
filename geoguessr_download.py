@@ -2,6 +2,7 @@ from typing import List
 
 import requests
 import pandas as pd
+import lxml
 
 
 # Automated Program to download geoguessr results table, to play blackjack with
