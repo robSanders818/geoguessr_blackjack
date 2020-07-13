@@ -1,1 +1,1 @@
-<runbot>: <python geoguessr_bot.py>
+worker: python geoguessr_bot.py
