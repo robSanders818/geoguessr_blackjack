@@ -25,4 +25,4 @@ class DiscordClient(discord.Client):
 
 
 client = DiscordClient()
-client.run('NzMyMDQ2NzM2NjYyNDYyNTY2.Xwu7ZQ.MxSeHRXskUVMSgHAypodyST727Q')
+client.run('NzMyMDQ2NzM2NjYyNDYyNTY2.Xwvb_g.j21VEscTbRZOkfpbVU2ww_6FZuY')
