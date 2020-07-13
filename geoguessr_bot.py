@@ -3,7 +3,7 @@ import discord
 from geoguessr_download import geoguessr_blackjack
 
 
-class MyClient(discord.Client):
+class DiscordClient(discord.Client):
     def __init__(self):
         super().__init__()
         self.players = []
@@ -24,6 +24,5 @@ class MyClient(discord.Client):
         await message.channel.send(player_message)
 
 
-if __name__ == "__main__":
-    client = MyClient()
-    client.run('NzMyMDQ2NzM2NjYyNDYyNTY2.Xwu7ZQ.MxSeHRXskUVMSgHAypodyST727Q')
+client = DiscordClient()
+client.run('NzMyMDQ2NzM2NjYyNDYyNTY2.Xwu7ZQ.MxSeHRXskUVMSgHAypodyST727Q')
