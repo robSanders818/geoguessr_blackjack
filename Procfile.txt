@@ -1,1 +1,1 @@
-python geoguessr_bot.py
+<runbot>: <python geoguessr_bot.py>
