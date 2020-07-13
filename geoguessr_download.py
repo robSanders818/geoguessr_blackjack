@@ -6,22 +6,16 @@ import lxml
 
 
 # Automated Program to download geoguessr results table, to play blackjack with
-def geoguessr_blackjack():
-    round_num = 0
-    players = []
-    while True:
-        url = input('Enter Round url: ')
-        lower_score = int(input('Enter Lower Score: '))
-        higher_score = int(input('Enter Higher Score: '))
-        all_scores = retrieve_all_scores(url)
-        all_scores = format_scores_df(all_scores)
-        players = filter_player_scores(all_scores, players, lower_score, higher_score, round_num)
-        round_num += 1
-        print()
-        print('Players in game still:')
-        for player_name in players:
-            print(player_name)
-        print()
+def geoguessr_blackjack(message, players):
+    url, lower_score, higher_score = message.split(' ')
+    lower_score, higher_score = int(lower_score), int(higher_score)
+    all_scores = retrieve_all_scores(url)
+    all_scores = format_scores_df(all_scores)
+    players = filter_player_scores(all_scores, players, lower_score, higher_score)
+    return players
+    print('Players in game still:')
+    for player_name in players:
+        print(player_name)
 
 
 # retrieves all scores using requests, and pandas read_html method
@@ -42,8 +36,8 @@ def format_scores_df(all_scores: pd.DataFrame) -> pd.DataFrame:
 
 
 # filters player scores based on player already existing in game, and if their score was correct
-def filter_player_scores(all_scores: pd.DataFrame, players: List, lower_score: int, higher_score: int, round_num: int) -> List[str]:
-    if round_num > 0:
+def filter_player_scores(all_scores: pd.DataFrame, players: List, lower_score: int, higher_score: int) -> List[str]:
+    if len(players) > 0:
         player_filter = all_scores['player'].isin(players)
         all_scores = all_scores[player_filter]
 
@@ -60,6 +54,3 @@ def filter_player_scores(all_scores: pd.DataFrame, players: List, lower_score: i
     higher_filter = all_scores['score'] <= higher_score
     all_scores = all_scores[lower_filter & higher_filter]
     return list(all_scores['player'])
-
-
-geoguessr_blackjack()
