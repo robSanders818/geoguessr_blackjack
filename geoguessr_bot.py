@@ -24,5 +24,6 @@ class MyClient(discord.Client):
         await message.channel.send(player_message)
 
 
-client = MyClient()
-client.run('NzMyMDQ2NzM2NjYyNDYyNTY2.Xwu7ZQ.MxSeHRXskUVMSgHAypodyST727Q')
+if __name__ == "__main__":
+    client = MyClient()
+    client.run('NzMyMDQ2NzM2NjYyNDYyNTY2.Xwu7ZQ.MxSeHRXskUVMSgHAypodyST727Q')
