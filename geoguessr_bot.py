@@ -1,3 +1,5 @@
+from typing import List
+
 import discord
 
 from geoguessr_download import geoguessr_blackjack
@@ -6,7 +8,7 @@ from geoguessr_download import geoguessr_blackjack
 class DiscordClient(discord.Client):
     def __init__(self):
         super().__init__()
-        self.players = []
+        self.games = {}
 
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
@@ -16,13 +18,41 @@ class DiscordClient(discord.Client):
         if message.author.bot:
             return
         if message.content == '!new':
-            self.players = []
+            self.games[message.author.id] = []
             player_message = 'New Blackjack Round!'
         else:
-            self.players = geoguessr_blackjack(message.content, self.players)
-            player_message = 'Players in game still:\n\n' + '\n'.join(self.players)
-        await message.channel.send(player_message)
+            if message.author not in self.games:
+                self.games[message.author.id] = []
+            try:
+                self.games[message.author.id] = geoguessr_blackjack(message.content, self.games[message.author.id])
+                player_message = 'Players in game still:\n\n' + '\n'.join(self.games[message.author.id])
+            except ValueError:
+                player_message = (
+                        'Incorrect Formatting- Please use this format:\n\nhttps://www.geoguessr.com/results/ 5000 ' +
+                        '15000\nNote there are no hypens'
+                )
+        if len(player_message) > 1999:
+            player_message_list = DiscordClient.character_limit_helper(player_message)
+            for message_item in player_message_list:
+                await message.channel.send(message_item)
+        else:
+            await message.channel.send(player_message)
+
+    @staticmethod
+    def character_limit_helper(message) -> List[str]:
+        player_message_list = []
+        while len(message) > 0:
+            if message.count('\n') == 1:
+                if len(player_message_list[-1]) + len(message) < 2000:
+                    player_message_list[-1] = player_message_list[-1] + message
+                else:
+                    player_message_list.append(message)
+                break
+            last_new_name_tuple = message[:1999].rsplit('\n', 1)
+            player_message_list.append(last_new_name_tuple[0])
+            message = message[message[:1999].rfind('\n'):]
+        return player_message_list
 
 
 client = DiscordClient()
-client.run('TOKEN')
+client.run('NzMyMDQ2NzM2NjYyNDYyNTY2.Xwvf6A.72VmsZZmr0C09hOkF92NAomHW9I')

@@ -13,9 +13,6 @@ def geoguessr_blackjack(message, players):
     all_scores = format_scores_df(all_scores)
     players = filter_player_scores(all_scores, players, lower_score, higher_score)
     return players
-    print('Players in game still:')
-    for player_name in players:
-        print(player_name)
 
 
 # retrieves all scores using requests, and pandas read_html method
