@@ -28,8 +28,8 @@ class DiscordClient(discord.Client):
                 player_message = 'Players in game still:\n\n' + '\n'.join(self.games[message.author.id])
             except ValueError:
                 player_message = (
-                        'Incorrect Formatting- Please use this format:\n\nhttps://www.geoguessr.com/results/ 5000 ' +
-                        '15000\nNote there are no hypens'
+                        'Incorrect Formatting- Please use this format:\nhttps://www.geoguessr.com/results/ 5000 ' +
+                        '15000\n\nNote there are no hypens.  If you want to start a new game, enter \"!new\"'
                 )
         if len(player_message) > 1999:
             player_message_list = DiscordClient.character_limit_helper(player_message)
