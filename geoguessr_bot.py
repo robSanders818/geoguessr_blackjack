@@ -1,7 +1,7 @@
 from typing import List
 
 import discord
-
+import csv
 from geoguessr_download import geoguessr_blackjack
 
 
@@ -32,9 +32,14 @@ class DiscordClient(discord.Client):
                         '15000\n\nNote there are no hypens.  If you want to start a new game, enter \"!new\"'
                 )
         if len(player_message) > 1999:
+            with open('{}.csv'.format(message.author.id), 'w', encoding='utf-8') as result_file:
+                wr = csv.writer(result_file, dialect='excel')
+                for item in self.games[message.author.id]:
+                    wr.writerow([item, ])
             player_message_list = DiscordClient.character_limit_helper(player_message)
             for message_item in player_message_list:
                 await message.channel.send(message_item)
+            await message.channel.send(file=discord.File('{}.csv'.format(message.author.id)))
         else:
             await message.channel.send(player_message)
 
