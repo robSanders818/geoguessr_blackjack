@@ -60,4 +60,4 @@ class DiscordClient(discord.Client):
 
 
 client = DiscordClient()
-client.run('TOKEN')
+client.run('NzMyMDQ2NzM2NjYyNDYyNTY2.XxDtjg.9zw96glT-twG2-9TTMvvF7QT2lc')
