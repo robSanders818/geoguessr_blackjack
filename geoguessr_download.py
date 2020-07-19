@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import requests
 import pandas as pd
@@ -28,7 +28,7 @@ def retrieve_all_scores(url) -> pd.DataFrame:
 
 
 # filters player scores based on player already existing in game, and if their score was correct
-def filter_player_scores(all_scores: pd.DataFrame, players: List, lower_score: int, higher_score: int) -> List[str]:
+def filter_player_scores(all_scores: pd.DataFrame, players: List, lower_score: int, higher_score: int) -> Tuple[List[str], List[str]]:
     if len(players) > 0:
         player_filter = all_scores['playerName'].isin(players)
         all_scores = all_scores[player_filter]
@@ -40,9 +40,13 @@ def filter_player_scores(all_scores: pd.DataFrame, players: List, lower_score: i
             axis=1
         )
         all_scores = all_scores.sort_values(by='diff')
-        return [all_scores.iloc[0]['playerName']]
+        min_diff = all_scores.iloc[0]['diff']
+        filter_higher = all_scores['totalScore'] == (lower_score + min_diff)
+        filter_lower = all_scores['totalScore'] == (lower_score - min_diff)
+        all_scores = all_scores[filter_higher | filter_lower]
+        return list(all_scores['playerName']), list(all_scores['totalScore'])
 
     lower_filter = all_scores['totalScore'] >= lower_score
     higher_filter = all_scores['totalScore'] <= higher_score
     all_scores = all_scores[lower_filter & higher_filter]
-    return list(all_scores['playerName'])
+    return list(all_scores['playerName']), list(all_scores['totalScore'])
