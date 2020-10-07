@@ -20,10 +20,10 @@ class DiscordClient(discord.Client):
         if message.content == '!new':
             self.games[message.author.id] = ([], [])
             player_message = (
-                    'New Blackjack Round!\n Example message formats include: \n' +
-                    'https://www.geoguessr.com/results/ 5000 15000\n' +
-                    'https://www.geoguessr.com/results/ 10\n' +
-                    'https://www.geoguessr.com/results/ 10%\n' +
+                    'New Blackjack Round!\nExample message formats include: \n' +
+                    '      https://www.geoguessr.com/results/ 5000 15000\n' +
+                    '      https://www.geoguessr.com/results/ 10\n' +
+                    '      https://www.geoguessr.com/results/ 10%\n' +
                     'These represent scores between 5000 and 10000, the top 10 Scorers, and the top 10% Scorers'
             )
         else:
