@@ -19,7 +19,13 @@ class DiscordClient(discord.Client):
             return
         if message.content == '!new':
             self.games[message.author.id] = ([], [])
-            player_message = 'New Blackjack Round!'
+            player_message = (
+                    'New Blackjack Round!\n Example message formats include: \n' +
+                    'https://www.geoguessr.com/results/ 5000 15000\n' +
+                    'https://www.geoguessr.com/results/ 10\n' +
+                    'https://www.geoguessr.com/results/ 10%\n' +
+                    'These represent scores between 5000 and 10000, the top 10 Scorers, and the top 10% Scorers'
+            )
         else:
             if message.author.id not in self.games:
                 self.games[message.author.id] = ()
@@ -38,7 +44,8 @@ class DiscordClient(discord.Client):
                 player_message = (
                         'Incorrect Formatting- Please use this format:\nhttps://www.geoguessr.com/results/ 5000 ' +
                         '15000\n\nNote there are no hypens, no commas, and send the lower score then the higher' +
-                        'score.'
+                        'score.\n You can also send in just one number (n), and that will find the top (n) scorers, or ' +
+                        'send a percent (n), and it will send top (n) percent of scorers.'
                 )
         if len(player_message) <= 1999:
             await message.channel.send(player_message)
