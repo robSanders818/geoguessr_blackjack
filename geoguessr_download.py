@@ -23,7 +23,8 @@ def geoguessr_blackjack(message, players):
         lower_score, higher_score = int(lower_score), int(higher_score)
         if lower_score > higher_score:
             raise ValueError
-    url = 'https://geoguessr.com/api/v3/results/scores{}/0/10000'.format(url.split('results')[1])
+    split_string = 'results' if 'results' in url else 'challenge'
+    url = 'https://geoguessr.com/api/v3/results/scores{}/0/10000'.format(url.split(split_string)[1])
     all_scores = retrieve_all_scores(url)
     players = filter_player_scores(all_scores, players, lower_score, higher_score, percent, cut_off)
     return players
