@@ -17,8 +17,12 @@ class DiscordClient(discord.Client):
         print('Message from {0.author}: {0.content}'.format(message))
         if message.author.bot:
             return
-        if message.content == '!new':
-            self.games[message.author.id] = ([], [])
+        if message.content == '!new' or message.content == '!new -c':
+            if '-c' in message.content:
+                self.games[message.channel.id] = ([], [])
+            else:
+                self.games.pop(message.channel.id, None)
+                self.games[message.author.id] = ([], [])
             player_message = (
                     'New Blackjack Round!\nExample message formats include: \n' +
                     '      https://www.geoguessr.com/results/ 5000 15000\n' +
@@ -26,17 +30,20 @@ class DiscordClient(discord.Client):
                     '      https://www.geoguessr.com/results/ 10%\n' +
                     'These represent scores between 5000 and 10000, the top 10 Scorers, and the top 10% Scorers'
             )
+            await message.channel.send(player_message)
         else:
-            if message.author.id not in self.games:
+            game_id = message.channel.id
+            if message.author.id not in self.games and message.channel.id not in self.games:
+                game_id = message.author.id
                 self.games[message.author.id] = ()
             try:
                 results = geoguessr_blackjack(
-                    message.content, self.games[message.author.id][0] if self.games[message.author.id] else []
+                    message.content, self.games[game_id][0] if self.games[game_id] else []
                 )
                 if len(results[0]) == 0:
                     player_message = 'No players fit between these scores, try another round.'
                 else:
-                    self.games[message.author.id] = results
+                    self.games[game_id] = results
                     temp_res = list(zip(results[1], results[2]))
                     temp_res = [score[0] + ' | ' + str('{:,}'.format(score[1])) for score in temp_res]
                     player_message = 'Players in game still:\n\n' + '\n'.join(temp_res)
@@ -47,15 +54,15 @@ class DiscordClient(discord.Client):
                         'score.\n You can also send in just one number (n), and that will find the top (n) scorers, or ' +
                         'send a percent (n), and it will send top (n) percent of scorers.'
                 )
-        if len(player_message) <= 1999:
-            await message.channel.send(player_message)
-        if self.games[message.author.id] and len(self.games[message.author.id][0]) > 0:
-            with open('{}.csv'.format(message.author.id), 'w', encoding='utf-8') as result_file:
-                wr = csv.writer(result_file, dialect='excel')
-                for name, score in zip(self.games[message.author.id][1], self.games[message.author.id][2]):
-                    wr.writerow([name, '{:,}'.format(score)])
-            await message.channel.send('Here are the results for this round:', file=discord.File('{}.csv'.format(message.author.id)))
-        await message.channel.send('If you want to start a new game, send !new')
+            if len(player_message) <= 1999:
+                await message.channel.send(player_message)
+            if self.games[game_id] and len(self.games[game_id][0]) > 0:
+                with open('{}.csv'.format(game_id), 'w', encoding='utf-8') as result_file:
+                    wr = csv.writer(result_file, dialect='excel')
+                    for name, score in zip(self.games[game_id][1], self.games[game_id][2]):
+                        wr.writerow([name, '{:,}'.format(score)])
+                await message.channel.send('Here are the results for this round:', file=discord.File('{}.csv'.format(message.author.id)))
+            await message.channel.send('If you want to start a new game, send !new')
 
 
 client = DiscordClient()
