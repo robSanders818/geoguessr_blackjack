@@ -61,7 +61,7 @@ class DiscordClient(discord.Client):
                     wr = csv.writer(result_file, dialect='excel')
                     for name, score in zip(self.games[game_id][1], self.games[game_id][2]):
                         wr.writerow([name, '{:,}'.format(score)])
-                await message.channel.send('Here are the results for this round:', file=discord.File('{}.csv'.format(message.author.id)))
+                await message.channel.send('Here are the results for this round:', file=discord.File('{}.csv'.format(game_id)))
             await message.channel.send('If you want to start a new game, send !new')
 
 
