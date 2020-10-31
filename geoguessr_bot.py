@@ -39,8 +39,9 @@ class DiscordClient(discord.Client):
                 self.games[message.author.id] = ()
             if message.content == '!stop':
                 self.pause[game_id] = True
+                await message.channel.send('I will stop talking')
             if message.content == '!start':
-                self.pause[game_id] = False
+                await message.channel.send('I\'m Back!')
             if game_id not in self.pause or not self.pause[game_id]:
                 try:
                     results = geoguessr_blackjack(
