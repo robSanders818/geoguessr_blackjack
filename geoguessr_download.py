@@ -35,7 +35,7 @@ def retrieve_all_scores(url) -> pd.DataFrame:
     html = requests.get(url).content
     df = pd.DataFrame(
         json.loads(html)
-    ).drop(columns=['gameToken', 'isActive', 'isLeader', 'pinUrl', 'color'])
+    )[['userId', 'playerName', 'totalScore']]
     return df
 
 
