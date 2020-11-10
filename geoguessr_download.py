@@ -50,7 +50,7 @@ def filter_player_scores(
 
     if len(blacklist) > 0:
         all_scores['pinUrl'] = all_scores['pinUrl'].apply(
-            lambda pin: pin.split('pin/')[1].split('.png')[0]
+            lambda pin: pin.split('pin/')[1].split('.png')[0] if 'pin/' in pin and '.png' in pin else ''
         )
         blacklist_filter_id = all_scores['userId'].isin(blacklist)
         blacklist_filter_pin = all_scores['pinUrl'].isin(blacklist)
