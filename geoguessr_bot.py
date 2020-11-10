@@ -37,12 +37,21 @@ class DiscordClient(discord.Client):
                 game_id = message.author.id
                 self.games[message.author.id] = ()
 
-            if message.content == '!stop':
+            if '!bl' in message.content:
+                bl_id = message.content.split('!bl ')[1]
+                if not self.games[game_id]:
+                    self.games[game_id] = ([], [], [], [])
+                if bl_id not in self.games[game_id][3]:
+                    self.games[game_id][3].append(bl_id)
+                    await (message.channel.send('Blacklisted User'))
+                else:
+                    self.games[game_id][3].remove(bl_id)
+                    await (message.channel.send('Un-Blacklisted User'))
+            elif message.content == '!stop':
                 await message.channel.send(self.handle_stop_start(game_id, True))
-            if message.content == '!start':
+            elif message.content == '!start':
                 await message.channel.send(self.handle_stop_start(game_id, False))
-
-            if game_id not in self.pause or not self.pause[game_id]:
+            elif game_id not in self.pause or not self.pause[game_id]:
                 await self.process_game(message, game_id)
 
     def respond_new(self, message) -> str:
@@ -53,10 +62,14 @@ class DiscordClient(discord.Client):
         :return: String containing info about how to use bot
         """
         if '-c' in message.content:
-            self.games[message.channel.id] = ([], [])
+            self.games[message.channel.id] = (
+                [], [], [], self.games[message.channel.id][3] if message.channel.id in self.games else []
+            )
         else:
             self.games.pop(message.channel.id, None)
-            self.games[message.author.id] = ([], [])
+            self.games[message.author.id] = (
+                [], [], [], self.games[message.author.id][3] if message.author.id in self.games else []
+            )
         player_message = (
                 'New Blackjack Round!\nExample message formats include: \n' +
                 '      https://www.geoguessr.com/results/ 5000 15000\n' +
@@ -105,7 +118,8 @@ class DiscordClient(discord.Client):
         """
         try:
             results = geoguessr_blackjack(
-                message.content, self.games[game_id][0] if self.games[game_id] else []
+                message.content, self.games[game_id][0] if self.games[game_id] else [],
+                self.games[game_id][3] if self.games[game_id] else []
             )
             if len(results[0]) == 0:
                 player_message = 'No players fit between these scores, try another round.'

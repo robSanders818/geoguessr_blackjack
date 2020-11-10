@@ -9,7 +9,7 @@ import json
 
 
 # Automated Program to download geoguessr results table, to play blackjack with
-def geoguessr_blackjack(message, players):
+def geoguessr_blackjack(message, players, blacklist):
     message_array = message.split(' ')
     url = message_array[0]
     lower_score, higher_score, percent, cut_off = None, None, None, None
@@ -26,7 +26,7 @@ def geoguessr_blackjack(message, players):
     split_string = 'results' if 'results' in url else 'challenge'
     url = 'https://geoguessr.com/api/v3/results/scores{}/0/10000'.format(url.split(split_string)[1])
     all_scores = retrieve_all_scores(url)
-    players = filter_player_scores(all_scores, players, lower_score, higher_score, percent, cut_off)
+    players = filter_player_scores(all_scores, players, lower_score, higher_score, percent, cut_off, blacklist)
     return players
 
 
@@ -35,17 +35,26 @@ def retrieve_all_scores(url) -> pd.DataFrame:
     html = requests.get(url).content
     df = pd.DataFrame(
         json.loads(html)
-    )[['userId', 'playerName', 'totalScore']]
+    )[['userId', 'playerName', 'totalScore', 'pinUrl']]
     return df
 
 
 # filters player scores based on player already existing in game, and if their score was correct
 def filter_player_scores(
-        all_scores: pd.DataFrame, players: List, lower_score: int, higher_score: int, percent: int, cut_off: int
-) -> Tuple[List[str], List[str], List[str]]:
+        all_scores: pd.DataFrame, players: List, lower_score: int, higher_score: int, percent: int, cut_off: int,
+        blacklist: List[str]
+) -> Tuple[List[str], List[str], List[str], List[str]]:
     if len(players) > 0:
         player_filter = all_scores['userId'].isin(players)
         all_scores = all_scores[player_filter]
+
+    if len(blacklist) > 0:
+        all_scores['pinUrl'] = all_scores['pinUrl'].apply(
+            lambda pin: pin.split('pin/')[1].split('.png')[0]
+        )
+        blacklist_filter_id = all_scores['userId'].isin(blacklist)
+        blacklist_filter_pin = all_scores['pinUrl'].isin(blacklist)
+        all_scores = all_scores[(~blacklist_filter_id) & (~blacklist_filter_pin)]
 
     # deals with final round logic to find closest player to score
     if lower_score is not None and higher_score is not None and lower_score == higher_score:
@@ -66,4 +75,4 @@ def filter_player_scores(
         lower_filter = all_scores['totalScore'] >= lower_score
         higher_filter = all_scores['totalScore'] <= higher_score
         all_scores = all_scores[lower_filter & higher_filter]
-    return list(all_scores['userId']), list(all_scores['playerName']), list(all_scores['totalScore'])
+    return list(all_scores['userId']), list(all_scores['playerName']), list(all_scores['totalScore']), blacklist
