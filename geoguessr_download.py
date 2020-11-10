@@ -46,7 +46,7 @@ def filter_player_scores(
 ) -> Tuple[List[str], List[str], List[str], List[str]]:
     if len(players) > 0:
         player_filter = all_scores['userId'].isin(players)
-        all_scores = all_scores[player_filter]
+        all_scores = all_scores[player_filter].reset_index()
 
     if len(blacklist) > 0:
         all_scores['pinUrl'] = all_scores['pinUrl'].apply(
@@ -54,7 +54,7 @@ def filter_player_scores(
         )
         blacklist_filter_id = all_scores['userId'].isin(blacklist)
         blacklist_filter_pin = all_scores['pinUrl'].isin(blacklist)
-        all_scores = all_scores[(~blacklist_filter_id) & (~blacklist_filter_pin)]
+        all_scores = all_scores[(~blacklist_filter_id) & (~blacklist_filter_pin)].reset_index()
 
     # deals with final round logic to find closest player to score
     if lower_score is not None and higher_score is not None and lower_score == higher_score:
