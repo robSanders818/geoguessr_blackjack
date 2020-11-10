@@ -101,7 +101,11 @@ class DiscordClient(discord.Client):
         # If message is short enough to fit in dm, it will send the results.  Always sends along results as csv as well
         if len(player_message) <= 1999:
             await message.channel.send(player_message)
-        if self.games[game_id] and len(self.games[game_id][0]) > 0:
+        if (
+                self.games[game_id]
+                and len(self.games[game_id][0]) > 0 
+                and player_message != 'No players fit between these scores, try another round.'
+        ):
             with open('{}.csv'.format(game_id), 'w', encoding='utf-8') as result_file:
                 wr = csv.writer(result_file, dialect='excel')
                 for name, score in zip(self.games[game_id][1], self.games[game_id][2]):
