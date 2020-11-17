@@ -20,7 +20,6 @@ class DiscordClient(discord.Client):
         super().__init__()
         self.games = {}
         self.pause = {}
-        self.last_url = {}
 
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
@@ -59,15 +58,16 @@ class DiscordClient(discord.Client):
         :param message: The discord message object containing all information about the message
         :return: String containing info about how to use bot
         """
-        if '-c' in message.content:
-            self.games[message.channel.id] = (
-                [], [], [], self.games[message.channel.id][3] if message.channel.id in self.games else []
-            )
-        else:
-            self.games.pop(message.channel.id, None)
-            self.games[message.author.id] = (
-                [], [], [], self.games[message.author.id][3] if message.author.id in self.games else []
-            )
+        self.games[message.channel.id] = ([], [], [])
+        # if '-c' in message.content:
+        #     self.games[message.channel.id] = (
+        #         [], [], []
+        #     )
+        # else:
+        #     self.games.pop(message.channel.id, None)
+        #     self.games[message.author.id] = (
+        #         [], [], []
+        #     )
         player_message = (
                 'New Blackjack Round!\nExample message formats include: \n' +
                 '      https://www.geoguessr.com/results/ 5000 15000\n' +
@@ -119,10 +119,9 @@ class DiscordClient(discord.Client):
         :return: String containing info about players in the game still
         """
         try:
-            # self.last_url[game_id] = message.content.split(' ')[0]
-            # blacklist = self.retrieve_blacklist(game_id)
+            blacklist = self.retrieve_blacklist(game_id)
             results = geoguessr_blackjack(
-                message.content, self.games[game_id][0] if self.games[game_id] else [], []
+                message.content, self.games[game_id][0] if self.games[game_id] else [], blacklist
             )
             if len(results[0]) == 0:
                 player_message = 'No players fit between these scores, try another round.'
@@ -159,7 +158,7 @@ class DiscordClient(discord.Client):
                     new_lines = []
                     for line in lines:
                         new_lines.append(' | '.join(line))
-                    return '\n'.join(new_lines)
+                    return 'Blacklisted Users:\n' + '\n'.join(new_lines)
                 else:
                     return 'There are no users blacklisted at the moment'
         except FileNotFoundError:
@@ -182,6 +181,15 @@ class DiscordClient(discord.Client):
             writer = csv.writer(bl_file)
             writer.writerow([username, bl_id, player_url])
         return 'Blacklisted ' + username
+
+    def retrieve_blacklist(self, game_id):
+        users = []
+        with open('{}_blacklist.csv'.format(game_id), 'r') as bl_users:
+            reader = csv.reader(bl_users)
+            for row in reader:
+                if row:
+                    users.append(row[1])
+        return users
 
 
 client = DiscordClient()
