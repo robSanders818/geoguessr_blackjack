@@ -2,7 +2,12 @@ from typing import List
 
 import discord
 import csv
+
+from bs4 import BeautifulSoup
+
 from geoguessr_download import geoguessr_blackjack
+import json
+import requests
 
 
 class DiscordClient(discord.Client):
@@ -15,6 +20,7 @@ class DiscordClient(discord.Client):
         super().__init__()
         self.games = {}
         self.pause = {}
+        self.last_url = {}
 
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
@@ -38,15 +44,7 @@ class DiscordClient(discord.Client):
                 self.games[message.author.id] = ()
 
             if '!bl' in message.content:
-                bl_id = message.content.split('!bl ')[1]
-                if not self.games[game_id]:
-                    self.games[game_id] = ([], [], [], [])
-                if bl_id not in self.games[game_id][3]:
-                    self.games[game_id][3].append(bl_id)
-                    await (message.channel.send('Blacklisted User'))
-                else:
-                    self.games[game_id][3].remove(bl_id)
-                    await (message.channel.send('Un-Blacklisted User'))
+                await message.channel.send(self.handle_blacklist(game_id, message))
             elif message.content == '!stop':
                 await message.channel.send(self.handle_stop_start(game_id, True))
             elif message.content == '!start':
@@ -121,9 +119,10 @@ class DiscordClient(discord.Client):
         :return: String containing info about players in the game still
         """
         try:
+            # self.last_url[game_id] = message.content.split(' ')[0]
+            # blacklist = self.retrieve_blacklist(game_id)
             results = geoguessr_blackjack(
-                message.content, self.games[game_id][0] if self.games[game_id] else [],
-                self.games[game_id][3] if self.games[game_id] else []
+                message.content, self.games[game_id][0] if self.games[game_id] else [], []
             )
             if len(results[0]) == 0:
                 player_message = 'No players fit between these scores, try another round.'
@@ -140,6 +139,49 @@ class DiscordClient(discord.Client):
                     'send a percent (n), and it will send top (n) percent of scorers.'
             )
         return player_message
+
+    def handle_blacklist(self, game_id, message) -> str:
+        retrieve = message.content == '!bl'
+        bl_id = message.content.split('!bl ')[1] if not retrieve else ''
+
+        lines = []
+        unblacklist = False
+        try:
+            with open('{}_blacklist.csv'.format(game_id), 'r') as bl_users:
+                reader = csv.reader(bl_users)
+                for row in reader:
+                    if not retrieve and row and row[1] == bl_id:
+                        unblacklist = True
+                    elif row:
+                        lines.append(row)
+            if retrieve:
+                if lines:
+                    new_lines = []
+                    for line in lines:
+                        new_lines.append(' | '.join(line))
+                    return '\n'.join(new_lines)
+                else:
+                    return 'There are no users blacklisted at the moment'
+        except FileNotFoundError:
+            if retrieve:
+                return 'There are no users blacklisted at the moment'
+
+        player_url = 'https://www.geoguessr.com/user/{}'.format(bl_id)
+        player = requests.get(player_url)
+        soup = BeautifulSoup(player.text, 'html.parser')
+        username = soup.find_all('title')[0].text.split(' -')[0]
+
+        with open('{}_blacklist.csv'.format(game_id), 'w') as writeFile:
+            writer = csv.writer(writeFile)
+            for line in lines:
+                if line:
+                    writer.writerow(lines)
+        if unblacklist:
+            return 'Un-Blacklisted ' + username
+        with open('{}_blacklist.csv'.format(game_id), 'a') as bl_file:
+            writer = csv.writer(bl_file)
+            writer.writerow([username, bl_id, player_url])
+        return 'Blacklisted ' + username
 
 
 client = DiscordClient()
