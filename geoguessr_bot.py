@@ -184,11 +184,15 @@ class DiscordClient(discord.Client):
 
     def retrieve_blacklist(self, game_id):
         users = []
-        with open('{}_blacklist.csv'.format(game_id), 'r') as bl_users:
-            reader = csv.reader(bl_users)
-            for row in reader:
-                if row:
-                    users.append(row[1])
+        try:
+            with open('{}_blacklist.csv'.format(game_id), 'r') as bl_users:
+                reader = csv.reader(bl_users)
+                for row in reader:
+                    if row:
+                        users.append(row[1])
+        except FileNotFoundError:
+            return users
+
         return users
 
 
